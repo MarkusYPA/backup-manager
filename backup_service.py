@@ -75,29 +75,14 @@ def main():
                         sched_total_minutes = sched_hour * 60 + sched_min
 
                         if sched_time_str == current_time_str:
-                            # Match!
+                            # Time match: execute backup and exclude from remaining schedules
                             perform_backup(path, name)
-                            # Do not add to remaining_schedules (it's removed after processing)
                         elif sched_total_minutes < current_minutes:
-                            # Already passed (today)
-                            # Requirement: "Schedules whose time has already passed are removed ... after processing."
-                            # Even if we didn't back it up (e.g., service was down), we remove it?
-                            # Usually yes, otherwise it keeps trying or blocks others.
-                            remaining_schedules.append(
-                                line
-                            )  # Wait, if it passed, we remove it.
-                            # Re-reading: "The service performs a backup when the current hour and minute match a scheduled time.
-                            # Schedules whose time has already passed are removed ... after processing."
-                            # This implies matched -> process -> remove.
-                            # What about those that passed but didn't match (missed)?
-                            # "Schedules whose time has already passed are removed"
-                            # I'll remove them.
+                            # Schedule has already passed today; exclude from remaining schedules
                             pass
                         else:
                             remaining_schedules.append(line)
                     except (ValueError, IndexError):
-                        # Malformed in file? Skip or remove?
-                        # Log it?
                         log_message(f"Error parsing schedule line: {line}")
 
                 # Update file if changed

@@ -105,8 +105,7 @@ def start_service():
     Starts the backup service as a background process.
     """
     try:
-        # Check if already running (naive check by looking at process list)
-        # Using pgrep if available or ps/grep
+        # Verify if the service is already running to avoid duplicate instances
         check_cmd = f"ps -A -f | grep {SERVICE_SCRIPT} | grep -v grep"
         result = subprocess.run(check_cmd, shell=True, capture_output=True, text=True)
         if result.stdout.strip():
@@ -130,7 +129,7 @@ def stop_service():
         if not result.stdout.strip():
             raise RuntimeError("can't stop backup_service")
 
-        # Get PID (second column in ps -ef)
+        # Extract PID from the process list output (typically the second column)
         for line in result.stdout.strip().split("\n"):
             parts = line.split()
             if len(parts) > 1:
@@ -149,10 +148,6 @@ def list_backups():
     try:
         if not os.path.exists(BACKUPS_DIR):
             os.makedirs(BACKUPS_DIR, exist_ok=True)
-            # Raise if it didn't exist? Requirements say "Error: can't find backups directory"
-            # But usually it should list what's there.
-            # I'll follow requirements strictly.
-            # If I just created it, it will be empty.
 
         files = [
             f
@@ -172,7 +167,6 @@ def main():
     executes the corresponding backup management commands.
     """
     if len(sys.argv) < 2:
-        # Invalid command if no args provided? Requirements imply arguments.
         log_message("Error: no command provided")
         return
 
