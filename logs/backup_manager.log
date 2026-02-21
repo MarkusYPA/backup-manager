@@ -1,0 +1,7 @@
+[21/02/2026 16:09] New schedule added: test_dir;16:11;my_test_backup
+[21/02/2026 16:09] Show schedules list
+[21/02/2026 16:09] backup_service started
+[21/02/2026 16:11] Show backups list
+[21/02/2026 16:11] backup_service stopped
+[21/02/2026 16:11] Show schedules list
+[21/02/2026 16:11] Error: malformed schedule: test;
