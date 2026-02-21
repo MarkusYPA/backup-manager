@@ -52,7 +52,7 @@ def create_schedule(schedule_str):
         with open(SCHEDULES_FILE, "a", encoding="utf-8") as f:
             f.write(f"{schedule_str}\n")
         log_message(f"New schedule added: {schedule_str}")
-    except Exception as e:
+    except (ValueError, OSError) as e:
         log_message(f"Error: {str(e)}")
 
 
@@ -70,7 +70,7 @@ def list_schedules():
         for i, schedule in enumerate(schedules):
             print(f"{i}: {schedule.strip()}")
         log_message("Show schedules list")
-    except Exception as e:
+    except (FileNotFoundError, OSError) as e:
         log_message(f"Error: {str(e)}")
 
 
@@ -96,7 +96,7 @@ def delete_schedule(index):
             log_message(f"Schedule at index {idx} deleted")
         else:
             raise IndexError(f"can't find schedule at index {idx}")
-    except Exception as e:
+    except (ValueError, IndexError, FileNotFoundError, OSError) as e:
         log_message(f"Error: {str(e)}")
 
 
@@ -115,7 +115,7 @@ def start_service():
 
         subprocess.Popen([sys.executable, SERVICE_SCRIPT], start_new_session=True)
         log_message("backup_service started")
-    except Exception as e:
+    except (OSError, subprocess.SubprocessError) as e:
         log_message(f"Error: backup_service failed to start: {str(e)}")
 
 
@@ -128,7 +128,7 @@ def stop_service():
         check_cmd = f"ps -A -f | grep {SERVICE_SCRIPT} | grep -v grep"
         result = subprocess.run(check_cmd, shell=True, capture_output=True, text=True)
         if not result.stdout.strip():
-            raise Exception("can't stop backup_service")
+            raise RuntimeError("can't stop backup_service")
 
         # Get PID (second column in ps -ef)
         for line in result.stdout.strip().split("\n"):
@@ -138,7 +138,7 @@ def stop_service():
                 os.kill(pid, 15)  # SIGTERM
 
         log_message("backup_service stopped")
-    except Exception as e:
+    except (OSError, ValueError, RuntimeError) as e:
         log_message(f"Error: {str(e)}")
 
 
@@ -162,8 +162,8 @@ def list_backups():
         for f in files:
             print(f)
         log_message("Show backups list")
-    except Exception as e:
-        log_message(f"Error: can't find backups directory")
+    except OSError:
+        log_message("Error: can't find backups directory")
 
 
 def main():

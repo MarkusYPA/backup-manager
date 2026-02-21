@@ -44,7 +44,7 @@ def perform_backup(path, name):
             tar.add(path, arcname=os.path.basename(path))
 
         log_message(f"Backup done for {path} in {backup_path}")
-    except Exception as e:
+    except (OSError, tarfile.TarError) as e:
         log_message(f"Error performing backup for {path}: {str(e)}")
 
 
@@ -95,7 +95,7 @@ def main():
                             pass
                         else:
                             remaining_schedules.append(line)
-                    except Exception:
+                    except (ValueError, IndexError):
                         # Malformed in file? Skip or remove?
                         # Log it?
                         log_message(f"Error parsing schedule line: {line}")
@@ -106,7 +106,7 @@ def main():
                         for s in remaining_schedules:
                             f.write(f"{s}\n")
 
-        except Exception as e:
+        except OSError as e:
             log_message(f"Error in service loop: {str(e)}")
 
         time.sleep(45)
