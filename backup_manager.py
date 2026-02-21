@@ -9,6 +9,7 @@ import sys
 import os
 import datetime
 import subprocess
+from typing import Union
 
 LOG_FILE = "logs/backup_manager.log"
 SCHEDULES_FILE = "backup_schedules.txt"
@@ -16,7 +17,7 @@ BACKUPS_DIR = "backups"
 SERVICE_SCRIPT = "backup_service.py"
 
 
-def log_message(message):
+def log_message(message: str) -> None:
     """
     Logs a message with a timestamp to the manager log file.
 
@@ -29,7 +30,7 @@ def log_message(message):
         f.write(f"{timestamp} {message}\n")
 
 
-def create_schedule(schedule_str):
+def create_schedule(schedule_str: str) -> None:
     """
     Parses and adds a new backup schedule to the schedules file.
 
@@ -56,7 +57,7 @@ def create_schedule(schedule_str):
         log_message(f"Error: {str(e)}")
 
 
-def list_schedules():
+def list_schedules() -> None:
     """
     Lists all scheduled backups from the schedules file.
     """
@@ -74,7 +75,7 @@ def list_schedules():
         log_message(f"Error: {str(e)}")
 
 
-def delete_schedule(index):
+def delete_schedule(index: Union[int, str]) -> None:
     """
     Deletes a backup schedule at the specified index.
 
@@ -100,7 +101,7 @@ def delete_schedule(index):
         log_message(f"Error: {str(e)}")
 
 
-def start_service():
+def start_service() -> None:
     """
     Starts the backup service as a background process.
     """
@@ -122,7 +123,7 @@ def start_service():
         log_message(f"Error: backup_service failed to start: {str(e)}")
 
 
-def stop_service():
+def stop_service() -> None:
     """
     Stops the background backup service by terminating its process.
     """
@@ -147,7 +148,7 @@ def stop_service():
         log_message(f"Error: {str(e)}")
 
 
-def list_backups():
+def list_backups() -> None:
     """
     Lists all created backup files in the backups directory.
     """
@@ -167,7 +168,7 @@ def list_backups():
         log_message("Error: can't find backups directory")
 
 
-def main():
+def main() -> None:
     """
     Main entry point for the CLI. Parses command-line arguments and
     executes the corresponding backup management commands.
