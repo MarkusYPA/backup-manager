@@ -93,7 +93,7 @@ def delete_schedule(index):
             removed = schedules.pop(idx)
             with open(SCHEDULES_FILE, "w", encoding="utf-8") as f:
                 f.writelines(schedules)
-            log_message(f"Schedule at index {idx} deleted")
+            log_message(f"Schedule at index {idx} deleted: {removed.strip()}")
         else:
             raise IndexError(f"can't find schedule at index {idx}")
     except (ValueError, IndexError, FileNotFoundError, OSError) as e:
@@ -107,7 +107,9 @@ def start_service():
     try:
         # Verify if the service is already running to avoid duplicate instances
         check_cmd = f"ps -A -f | grep {SERVICE_SCRIPT} | grep -v grep"
-        result = subprocess.run(check_cmd, shell=True, capture_output=True, text=True)
+        result = subprocess.run(
+            check_cmd, shell=True, capture_output=True, text=True, check=False
+        )
         if result.stdout.strip():
             log_message("Error: backup_service already running")
             return
@@ -125,7 +127,9 @@ def stop_service():
     try:
         # Find PID
         check_cmd = f"ps -A -f | grep {SERVICE_SCRIPT} | grep -v grep"
-        result = subprocess.run(check_cmd, shell=True, capture_output=True, text=True)
+        result = subprocess.run(
+            check_cmd, shell=True, capture_output=True, text=True, check=False
+        )
         if not result.stdout.strip():
             raise RuntimeError("can't stop backup_service")
 
