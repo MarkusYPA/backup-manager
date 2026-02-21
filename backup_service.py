@@ -15,7 +15,7 @@ SCHEDULES_FILE = "backup_schedules.txt"
 BACKUPS_DIR = "backups"
 
 
-def log_message(message):
+def log_message(message: str) -> None:
     """
     Logs a message with a timestamp to the service log file.
 
@@ -28,7 +28,7 @@ def log_message(message):
         f.write(f"{timestamp} {message}\n")
 
 
-def perform_backup(path, name):
+def perform_backup(path: str, name: str) -> None:
     """
     Creates a compressed tar archive of the specified directory.
 
@@ -48,7 +48,7 @@ def perform_backup(path, name):
         log_message(f"Error performing backup for {path}: {str(e)}")
 
 
-def main():
+def main() -> None:
     """
     Main service loop. Continuously checks for scheduled backups,
     executes them if the current time matches, and cleans up schedules.
