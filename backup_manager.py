@@ -114,6 +114,8 @@ def start_service():
             log_message("Error: backup_service already running")
             return
 
+        # No 'with' statement used because the service must continue running as a daemon
+        # pylint: disable=consider-using-with
         subprocess.Popen([sys.executable, SERVICE_SCRIPT], start_new_session=True)
         log_message("backup_service started")
     except (OSError, subprocess.SubprocessError) as e:
