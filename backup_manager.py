@@ -25,7 +25,7 @@ def log_message(message):
     """
     os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
     timestamp = datetime.datetime.now().strftime("[%d/%m/%Y %H:%M]")
-    with open(LOG_FILE, "a") as f:
+    with open(LOG_FILE, "a", encoding="utf-8") as f:
         f.write(f"{timestamp} {message}\n")
 
 
@@ -49,10 +49,10 @@ def create_schedule(schedule_str):
         if not (0 <= hour <= 23 and 0 <= minute <= 59):
             raise ValueError(f"malformed schedule: {schedule_str}")
 
-        with open(SCHEDULES_FILE, "a") as f:
+        with open(SCHEDULES_FILE, "a", encoding="utf-8") as f:
             f.write(f"{schedule_str}\n")
         log_message(f"New schedule added: {schedule_str}")
-    except Exception as e:
+    except (ValueError, OSError) as e:
         log_message(f"Error: {str(e)}")
 
 
@@ -64,13 +64,13 @@ def list_schedules():
         if not os.path.exists(SCHEDULES_FILE):
             raise FileNotFoundError("can't find backup_schedules.txt")
 
-        with open(SCHEDULES_FILE, "r") as f:
+        with open(SCHEDULES_FILE, "r", encoding="utf-8") as f:
             schedules = f.readlines()
 
         for i, schedule in enumerate(schedules):
             print(f"{i}: {schedule.strip()}")
         log_message("Show schedules list")
-    except Exception as e:
+    except (FileNotFoundError, OSError) as e:
         log_message(f"Error: {str(e)}")
 
 
@@ -85,18 +85,18 @@ def delete_schedule(index):
         if not os.path.exists(SCHEDULES_FILE):
             raise FileNotFoundError("can't find backup_schedules.txt")
 
-        with open(SCHEDULES_FILE, "r") as f:
+        with open(SCHEDULES_FILE, "r", encoding="utf-8") as f:
             schedules = f.readlines()
 
         idx = int(index)
         if 0 <= idx < len(schedules):
             removed = schedules.pop(idx)
-            with open(SCHEDULES_FILE, "w") as f:
+            with open(SCHEDULES_FILE, "w", encoding="utf-8") as f:
                 f.writelines(schedules)
-            log_message(f"Schedule at index {idx} deleted")
+            log_message(f"Schedule at index {idx} deleted: {removed.strip()}")
         else:
             raise IndexError(f"can't find schedule at index {idx}")
-    except Exception as e:
+    except (ValueError, IndexError, FileNotFoundError, OSError) as e:
         log_message(f"Error: {str(e)}")
 
 
@@ -105,17 +105,20 @@ def start_service():
     Starts the backup service as a background process.
     """
     try:
-        # Check if already running (naive check by looking at process list)
-        # Using pgrep if available or ps/grep
+        # Verify if the service is already running to avoid duplicate instances
         check_cmd = f"ps -A -f | grep {SERVICE_SCRIPT} | grep -v grep"
-        result = subprocess.run(check_cmd, shell=True, capture_output=True, text=True)
+        result = subprocess.run(
+            check_cmd, shell=True, capture_output=True, text=True, check=False
+        )
         if result.stdout.strip():
             log_message("Error: backup_service already running")
             return
 
+        # No 'with' statement used because the service must continue running as a daemon
+        # pylint: disable=consider-using-with
         subprocess.Popen([sys.executable, SERVICE_SCRIPT], start_new_session=True)
         log_message("backup_service started")
-    except Exception as e:
+    except (OSError, subprocess.SubprocessError) as e:
         log_message(f"Error: backup_service failed to start: {str(e)}")
 
 
@@ -126,11 +129,13 @@ def stop_service():
     try:
         # Find PID
         check_cmd = f"ps -A -f | grep {SERVICE_SCRIPT} | grep -v grep"
-        result = subprocess.run(check_cmd, shell=True, capture_output=True, text=True)
+        result = subprocess.run(
+            check_cmd, shell=True, capture_output=True, text=True, check=False
+        )
         if not result.stdout.strip():
-            raise Exception("can't stop backup_service")
+            raise RuntimeError("can't stop backup_service")
 
-        # Get PID (second column in ps -ef)
+        # Extract PID from the process list output (typically the second column)
         for line in result.stdout.strip().split("\n"):
             parts = line.split()
             if len(parts) > 1:
@@ -138,7 +143,7 @@ def stop_service():
                 os.kill(pid, 15)  # SIGTERM
 
         log_message("backup_service stopped")
-    except Exception as e:
+    except (OSError, ValueError, RuntimeError) as e:
         log_message(f"Error: {str(e)}")
 
 
@@ -149,10 +154,6 @@ def list_backups():
     try:
         if not os.path.exists(BACKUPS_DIR):
             os.makedirs(BACKUPS_DIR, exist_ok=True)
-            # Raise if it didn't exist? Requirements say "Error: can't find backups directory"
-            # But usually it should list what's there.
-            # I'll follow requirements strictly.
-            # If I just created it, it will be empty.
 
         files = [
             f
@@ -162,8 +163,8 @@ def list_backups():
         for f in files:
             print(f)
         log_message("Show backups list")
-    except Exception as e:
-        log_message(f"Error: can't find backups directory")
+    except OSError:
+        log_message("Error: can't find backups directory")
 
 
 def main():
@@ -172,7 +173,6 @@ def main():
     executes the corresponding backup management commands.
     """
     if len(sys.argv) < 2:
-        # Invalid command if no args provided? Requirements imply arguments.
         log_message("Error: no command provided")
         return
 
