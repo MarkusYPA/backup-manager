@@ -24,7 +24,7 @@ def log_message(message):
     """
     os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
     timestamp = datetime.datetime.now().strftime("[%d/%m/%Y %H:%M]")
-    with open(LOG_FILE, "a") as f:
+    with open(LOG_FILE, "a", encoding="utf-8") as f:
         f.write(f"{timestamp} {message}\n")
 
 
@@ -56,7 +56,7 @@ def main():
     while True:
         try:
             if os.path.exists(SCHEDULES_FILE):
-                with open(SCHEDULES_FILE, "r") as f:
+                with open(SCHEDULES_FILE, "r", encoding="utf-8") as f:
                     schedules = f.readlines()
 
                 now = datetime.datetime.now()
@@ -102,7 +102,7 @@ def main():
 
                 # Update file if changed
                 if len(remaining_schedules) != len(schedules):
-                    with open(SCHEDULES_FILE, "w") as f:
+                    with open(SCHEDULES_FILE, "w", encoding="utf-8") as f:
                         for s in remaining_schedules:
                             f.write(f"{s}\n")
 

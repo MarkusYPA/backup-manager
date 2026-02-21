@@ -25,7 +25,7 @@ def log_message(message):
     """
     os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
     timestamp = datetime.datetime.now().strftime("[%d/%m/%Y %H:%M]")
-    with open(LOG_FILE, "a") as f:
+    with open(LOG_FILE, "a", encoding="utf-8") as f:
         f.write(f"{timestamp} {message}\n")
 
 
@@ -49,7 +49,7 @@ def create_schedule(schedule_str):
         if not (0 <= hour <= 23 and 0 <= minute <= 59):
             raise ValueError(f"malformed schedule: {schedule_str}")
 
-        with open(SCHEDULES_FILE, "a") as f:
+        with open(SCHEDULES_FILE, "a", encoding="utf-8") as f:
             f.write(f"{schedule_str}\n")
         log_message(f"New schedule added: {schedule_str}")
     except Exception as e:
@@ -64,7 +64,7 @@ def list_schedules():
         if not os.path.exists(SCHEDULES_FILE):
             raise FileNotFoundError("can't find backup_schedules.txt")
 
-        with open(SCHEDULES_FILE, "r") as f:
+        with open(SCHEDULES_FILE, "r", encoding="utf-8") as f:
             schedules = f.readlines()
 
         for i, schedule in enumerate(schedules):
@@ -85,13 +85,13 @@ def delete_schedule(index):
         if not os.path.exists(SCHEDULES_FILE):
             raise FileNotFoundError("can't find backup_schedules.txt")
 
-        with open(SCHEDULES_FILE, "r") as f:
+        with open(SCHEDULES_FILE, "r", encoding="utf-8") as f:
             schedules = f.readlines()
 
         idx = int(index)
         if 0 <= idx < len(schedules):
             removed = schedules.pop(idx)
-            with open(SCHEDULES_FILE, "w") as f:
+            with open(SCHEDULES_FILE, "w", encoding="utf-8") as f:
                 f.writelines(schedules)
             log_message(f"Schedule at index {idx} deleted")
         else:
