@@ -1,3 +1,10 @@
+"""
+Backup Manager CLI
+
+This script provides a command-line interface for managing backup schedules
+and controlling the background backup service.
+"""
+
 import sys
 import os
 import datetime
@@ -10,6 +17,12 @@ SERVICE_SCRIPT = "backup_service.py"
 
 
 def log_message(message):
+    """
+    Logs a message with a timestamp to the manager log file.
+
+    Args:
+        message (str): The message to log.
+    """
     os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
     timestamp = datetime.datetime.now().strftime("[%d/%m/%Y %H:%M]")
     with open(LOG_FILE, "a") as f:
@@ -17,6 +30,12 @@ def log_message(message):
 
 
 def create_schedule(schedule_str):
+    """
+    Parses and adds a new backup schedule to the schedules file.
+
+    Args:
+        schedule_str (str): The schedule in format "path;HH:MM;name".
+    """
     try:
         parts = schedule_str.split(";")
         if len(parts) != 3 or not parts[0] or not parts[1] or not parts[2]:
@@ -38,6 +57,9 @@ def create_schedule(schedule_str):
 
 
 def list_schedules():
+    """
+    Lists all scheduled backups from the schedules file.
+    """
     try:
         if not os.path.exists(SCHEDULES_FILE):
             raise FileNotFoundError("can't find backup_schedules.txt")
@@ -53,6 +75,12 @@ def list_schedules():
 
 
 def delete_schedule(index):
+    """
+    Deletes a backup schedule at the specified index.
+
+    Args:
+        index (int/str): The index of the schedule to delete.
+    """
     try:
         if not os.path.exists(SCHEDULES_FILE):
             raise FileNotFoundError("can't find backup_schedules.txt")
@@ -73,6 +101,9 @@ def delete_schedule(index):
 
 
 def start_service():
+    """
+    Starts the backup service as a background process.
+    """
     try:
         # Check if already running (naive check by looking at process list)
         # Using pgrep if available or ps/grep
@@ -89,6 +120,9 @@ def start_service():
 
 
 def stop_service():
+    """
+    Stops the background backup service by terminating its process.
+    """
     try:
         # Find PID
         check_cmd = f"ps -A -f | grep {SERVICE_SCRIPT} | grep -v grep"
@@ -109,6 +143,9 @@ def stop_service():
 
 
 def list_backups():
+    """
+    Lists all created backup files in the backups directory.
+    """
     try:
         if not os.path.exists(BACKUPS_DIR):
             os.makedirs(BACKUPS_DIR, exist_ok=True)
@@ -130,6 +167,10 @@ def list_backups():
 
 
 def main():
+    """
+    Main entry point for the CLI. Parses command-line arguments and
+    executes the corresponding backup management commands.
+    """
     if len(sys.argv) < 2:
         # Invalid command if no args provided? Requirements imply arguments.
         log_message("Error: no command provided")
